@@ -1,0 +1,191 @@
+---
+title: "Cyclistics_project"
+author: "Mukul Sharma"
+date: "9/30/2021"
+output: html_document
+---
+
+
+
+## Cyclistic user data analysis 
+
+# About the Company 
+
+In 2016, Cyclistic launched a successful bike-share offering. Since then, the program has grown to a fleet of 5,824 bicycles that are geotracked and locked into a network of 692 stations across Chicago. The bikes can be unlocked from one station and returned to any other station in the system anytime.
+Until now, Cyclistic’s marketing strategy relied on building general awareness and appealing to broad consumer segments.One approach that helped make these things possible was the flexibility of its pricing plans: single-ride passes, full-day passes,and annual memberships. Customers who purchase single-ride or full-day passes are referred to as casual riders. Customers who purchase annual memberships are Cyclistic members.
+
+
+# Business Task
+
+How do annual members and casual riders use Cyclistic bikes differently?
+
+
+# Prepare 
+
+Cyclistic’s historical trip data to analyze and identify trends.The data has been made available by
+Motivate International Inc. under this license.) This is public data that you can use to explore how different customer types are using Cyclistic bikes. But note that data-privacy issues prohibit you from using riders’ personally identifiable information. This
+means that you won’t be able to connect pass purchases to credit card numbers to determine if casual riders live in the Cyclistic service area or if they have purchased multiple single passes.
+
+For my analysis I have used the data for the 1st quater of the year 2021 
+
+# Setup 
+
+Installing packages and information about working directory 
+
+
+```{r}
+
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("lubridate")
+install.packages("janitor")
+install.packages("dplyr")
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(janitor)
+library(dplyr)
+getwd()
+
+```
+
+
+
+
+Importing data 
+```{r}
+
+jan_21 <- read_csv("202101-divvy-tripdata.csv")
+feb_21 <- read_csv("202102-divvy-tripdata.csv")
+mar_21 <- read_csv("202103-divvy-tripdata.csv")
+
+```
+
+
+
+# Process
+
+Checking columnames and data type 
+```{r}
+
+colnames(jan_21)
+colnames(feb_21)
+colnames(mar_21)
+glimpse( jan_21)
+glimpse(feb_21)
+glimpse(mar_21)
+summary(jan_21)
+summary(feb_21)
+summary(mar_21)
+
+```
+
+
+Since all data type in three data sets are same we can go ahead and merge them into one data set to work with 
+
+
+```{r}
+
+compare_df_cols_same( jan_21, feb_21, mar_21,  bind_method = c("bind_rows", "rbind"), verbose= TRUE)
+Cyclistic_bike <- rbind( jan_21, feb_21, mar_21 )
+head(Cyclistic_bike)
+glimpse(Cyclistic_bike)
+
+```
+
+# Analysing 
+
+Removing bad data from data set 
+
+```{r}
+cyclistic_v2 <- Cyclistic_bike[ -c(9:12) ]
+colnames(cyclistic_v2)
+is.null(cyclistic_v2)
+summarise(cyclistic_v2)
+
+```
+
+Calculating total ride time of all the rides in minutes 
+
+```{r}
+ride_time <- difftime(cyclistic_v2$ended_at, cyclistic_v2$started_at, units = "mins")
+cyclistic_v2 <- mutate(cyclistic_v2, total_ride_time = ride_time)
+View(cyclistic_v2)
+cyclistic_v2 <- na.omit(cyclistic_v2)
+View(cyclistic_v2)
+
+
+```
+
+
+Calculating starting time of every ride 
+
+```{r}
+ride_hour <- hour(cyclistic_v2$started_at)
+cyclistic_v2 <- mutate(cyclistic_v2, start_time_of_ride = ride_hour)
+View(cyclistic_v2)
+```
+
+
+Filtering data into days, months , day of the week and year
+
+```{r}
+cyclistic_v2$date <- as.Date(cyclistic_v2$started_at) 
+cyclistic_v2$month <- format(as.Date(cyclistic_v2$date), "%m")
+cyclistic_v2$day <- format(as.Date(cyclistic_v2$date), "%d")
+cyclistic_v2$year <- format(as.Date(cyclistic_v2$date), "%Y")
+cyclistic_v2$day_of_week <- format(as.Date(cyclistic_v2$date), "%A")
+
+```
+
+Filltering total ride time and removing all the data which is smaller than 0
+
+```{r}
+cyclistic_v2 <- filter(cyclistic_v2, total_ride_time >=0)
+
+```
+
+
+Descriptive  Analysis
+
+Calculating Mean and Median of total ride time 
+
+```{r}
+mean(cyclistic_v2$total_ride_time)
+median(cyclistic_v2$total_ride_time)
+```
+
+
+Evaluating Minimum and Maximum ride time 
+
+```{r}
+max(cyclistic_v2$total_ride_time)
+min(cyclistic_v2$total_ride_time)
+
+```
+
+Aggregated  Mean and Median by each user type 
+
+```{r}
+aggregate(cyclistic_v2$total_ride_time ~ cyclistic_v2$member_casual, FUN = mean)
+aggregate(cyclistic_v2$total_ride_time ~ cyclistic_v2$member_casual, FUN = median)
+```
+
+Aggregated Maximum and Minimum ride time by each user type 
+
+
+```{r}
+
+aggregate(cyclistic_v2$total_ride_time ~ cyclistic_v2$member_casual, FUN = max)
+aggregate(cyclistic_v2$total_ride_time ~ cyclistic_v2$member_casual, FUN = min)
+
+```
+
+
+Aggregated total ride time by each user type on different days of week 
+
+```{r}
+aggregate(cyclistic_v2$total_ride_time ~ cyclistic_v2$member_casual + cyclistic_v2$day_of_week, FUN = mean)
+
+```
+
