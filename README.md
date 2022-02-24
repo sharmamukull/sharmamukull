@@ -1,7 +1,7 @@
 - 👋 Hi, I’m @sharmamukull
 - 👀 I’m interested in data analytics
 - 🌱 I’m currently learning python
-- 💞️ I’m looking to collaborate on ...
+
 - 📫 How to reach me sharmamukull@yahoo.com
 
 <!---
